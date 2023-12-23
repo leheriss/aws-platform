@@ -25,32 +25,31 @@ if (!rootOuId || rootOuId == '') {
   throw new Error(
     'No root OU Id in AWS Organizations, cannot deploy Organizations nor Account Factory stacks',
   );
-} else {
-  const organizationsStack = new AwsOrganizationsStack(app, 'AwsOrganizationsStack', {
-    rootOrganizationId: rootOuId,
-    accountId: managementAccountId,
-  });
-
-  if (!ssoGroups || ssoGroups == '[]') {
-    throw new Error(
-      'No SSO groups found in Identity Center, cannot deploy Identity Center nor Account Factory stacks',
-    );
-  } else {
-    const identityCenterStack = new AwsIdentityCenterStack(app, 'AwsIdentityCenterStack', {
-      accountId: managementAccountId,
-      ssoInstanceArn,
-      ssoGroups: JSON.parse(ssoGroups) as Group[],
-    });
-
-    new AwsAccountFactoryStack(app, 'AwsAccountFactoryStack', {
-      accountId: managementAccountId,
-      ssoInstanceArn,
-      ssoAdminGroupId: identityCenterStack.adminSSOGroupId,
-      ssoAdminPermissionSetArn: identityCenterStack.adminSSOPermissionSetArn,
-      pendingDeletionOU: organizationsStack.pendingDeletionOu,
-    });
-  }
 }
+
+const organizationsStack = new AwsOrganizationsStack(app, 'AwsOrganizationsStack', {
+  rootOrganizationId: rootOuId,
+  accountId: managementAccountId,
+});
+
+if (!ssoGroups || ssoGroups == '[]') {
+  throw new Error(
+    'No SSO groups found in Identity Center, cannot deploy Identity Center nor Account Factory stacks',
+  );
+}
+const identityCenterStack = new AwsIdentityCenterStack(app, 'AwsIdentityCenterStack', {
+  accountId: managementAccountId,
+  ssoInstanceArn,
+  ssoGroups: JSON.parse(ssoGroups) as Group[],
+});
+
+new AwsAccountFactoryStack(app, 'AwsAccountFactoryStack', {
+  accountId: managementAccountId,
+  ssoInstanceArn,
+  ssoAdminGroupId: identityCenterStack.adminSSOGroupId,
+  ssoAdminPermissionSetArn: identityCenterStack.adminSSOPermissionSetArn,
+  pendingDeletionOU: organizationsStack.pendingDeletionOu,
+});
 
 new FinOpsStack(app, 'FinOpsStack', {
   accountId: managementAccountId,
@@ -59,9 +58,9 @@ new FinOpsStack(app, 'FinOpsStack', {
 
 if (!awsOrganizationsId || awsOrganizationsId == '') {
   throw new Error('Cannot find AWS Organizations Id, cannot deploy Logging Stack');
-} else {
-  new LoggingStack(app, 'LoggingStack', {
-    accountId: managementAccountId,
-    awsOrganizationsId,
-  });
 }
+
+new LoggingStack(app, 'LoggingStack', {
+  accountId: managementAccountId,
+  awsOrganizationsId,
+});
