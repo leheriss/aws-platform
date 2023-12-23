@@ -3,7 +3,7 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 
 import { Budget } from '../constructs/budget';
-import { BaseStack } from '../constructs/baseStack';
+import { BaseStack } from './baseStack';
 
 type FinOpsStackProps = StackProps & {
   accountId: string;

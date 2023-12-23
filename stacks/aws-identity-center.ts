@@ -4,7 +4,7 @@ import { Construct } from 'constructs';
 import SSOAssignments from '../constructs/ssoAssignments';
 import { getGroupWithName } from '../utils';
 import { Assignment, Group } from '../types';
-import { BaseStack } from '../constructs/baseStack';
+import { BaseStack } from './baseStack';
 import { SSOPermissionSet } from '../constructs/ssoPermissionSet';
 
 type AwsSsoStackProps = StackProps & {

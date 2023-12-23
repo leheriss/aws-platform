@@ -1,5 +1,5 @@
-import { Stack, StackProps } from "aws-cdk-lib";
-import { Construct } from "constructs";
+import { Stack, StackProps } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 type BaseStackProps = StackProps & {
   accountId: string;
@@ -11,10 +11,10 @@ export class BaseStack extends Stack {
     super(scope, id, {
       env: {
         account: accountId,
-        region: env?.region ?? "eu-west-1",
+        region: env?.region ?? 'eu-west-1',
       },
       tags: {
-        ENVIRONMENT: "prod",
+        ENVIRONMENT: 'prod',
       },
       ...props,
     });

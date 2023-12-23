@@ -3,7 +3,7 @@ import { DataResourceType, ReadWriteType, Trail } from 'aws-cdk-lib/aws-cloudtra
 import { PolicyStatement, ServicePrincipal, Effect } from 'aws-cdk-lib/aws-iam';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { BaseStack } from '../constructs/baseStack';
+import { BaseStack } from './baseStack';
 
 type LoggingStackProps = StackProps & {
   accountId: string;
