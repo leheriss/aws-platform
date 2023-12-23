@@ -19,11 +19,11 @@ class SSOAssignments extends Construct {
         const constructId = typeof account === 'string' ? account : account.node.id;
         new CfnAssignment(
           this,
-          `${accountPermissionSet.permissionSet.name}-${constructId}-${assignment.group.name}-Assignment`,
+          `${accountPermissionSet.permissionSet.name}-${constructId}-${assignment.groupName}-Assignment`,
           {
             instanceArn: props.ssoInstanceArn,
             permissionSetArn: accountPermissionSet.permissionSet.attrPermissionSetArn,
-            principalId: assignment.group.id,
+            principalId: assignment.groupId,
             principalType: 'GROUP',
             targetId: typeof account === 'string' ? account : account.attrAccountId,
             targetType: 'AWS_ACCOUNT',

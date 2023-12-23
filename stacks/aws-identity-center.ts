@@ -2,15 +2,15 @@ import { StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import SSOAssignments from '../constructs/ssoAssignments';
-import { getGroupWithName } from '../utils';
-import { Assignment, Group } from '../types';
+import { Assignment } from '../types';
 import { BaseStack } from './baseStack';
 import { SSOPermissionSet } from '../constructs/ssoPermissionSet';
+import { IdentityCenterGroup } from '../constructs/identityCenterGroup';
 
 type AwsSsoStackProps = StackProps & {
   accountId: string;
   ssoInstanceArn: string;
-  ssoGroups: Group[];
+  identityStoreId: string;
 };
 
 export class AwsIdentityCenterStack extends BaseStack {
@@ -19,9 +19,22 @@ export class AwsIdentityCenterStack extends BaseStack {
   public readonly adminSSOPermissionSetArn: string;
 
   constructor(scope: Construct, id: string, props: AwsSsoStackProps) {
-    const { accountId, ssoInstanceArn, ssoGroups } = props;
+    const { accountId, ssoInstanceArn, identityStoreId } = props;
     super(scope, id, {
       ...props,
+    });
+
+    // GROUPS
+
+    const adminGroup = new IdentityCenterGroup(this, 'Admin', {
+      groupName: 'Admin',
+      identityStoreId,
+    });
+    this.adminSSOGroupId = adminGroup.id;
+
+    const readOnlyGroup = new IdentityCenterGroup(this, 'ReadOnly', {
+      groupName: 'ReadOnly',
+      identityStoreId,
     });
 
     // PERMISSION SETS
@@ -36,14 +49,14 @@ export class AwsIdentityCenterStack extends BaseStack {
       managedPolicies: ['arn:aws:iam::aws:policy/job-function/ViewOnlyAccess'],
     });
 
-    this.adminSSOGroupId = getGroupWithName(ssoGroups, 'Admin').id;
     this.adminSSOPermissionSetArn = adminPermissionSet.attrPermissionSetArn;
 
     // ASSIGNMENTS TO GROUPS
 
     const assignments: Assignment[] = [
       {
-        group: getGroupWithName(ssoGroups, 'Admin'),
+        groupId: adminGroup.id,
+        groupName: adminGroup.name,
         accountPermissionSets: [
           {
             permissionSet: adminPermissionSet,
@@ -52,7 +65,8 @@ export class AwsIdentityCenterStack extends BaseStack {
         ],
       },
       {
-        group: getGroupWithName(ssoGroups, 'ReadOnly'),
+        groupId: readOnlyGroup.id,
+        groupName: readOnlyGroup.name,
         accountPermissionSets: [
           {
             permissionSet: viewOnlyPermissionSet,

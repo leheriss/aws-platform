@@ -4,7 +4,6 @@ import { AwsAccountFactoryStack } from '../stacks/aws-account-factory';
 import { AwsOrganizationsStack } from '../stacks/aws-organizations';
 import { AwsIdentityCenterStack } from '../stacks/aws-identity-center';
 import { FinOpsStack } from '../stacks/finops';
-import { Group } from '../types';
 import { LoggingStack } from '../stacks/logging';
 
 const app = new cdk.App();
@@ -17,9 +16,9 @@ const ssoInstanceArn = app.node.tryGetContext('ssoInstanceArn') as string;
 
 const rootOuId = app.node.tryGetContext('rootOuId') as string;
 
-const ssoGroups = app.node.tryGetContext('ssoGroups') as string;
-
 const awsOrganizationsId = app.node.tryGetContext('awsOrganizationsId') as string;
+
+const identityStoreId = app.node.tryGetContext('identityStoreId') as string;
 
 if (!rootOuId || rootOuId == '') {
   throw new Error(
@@ -32,15 +31,10 @@ const organizationsStack = new AwsOrganizationsStack(app, 'AwsOrganizationsStack
   accountId: managementAccountId,
 });
 
-if (!ssoGroups || ssoGroups == '[]') {
-  throw new Error(
-    'No SSO groups found in Identity Center, cannot deploy Identity Center nor Account Factory stacks',
-  );
-}
 const identityCenterStack = new AwsIdentityCenterStack(app, 'AwsIdentityCenterStack', {
   accountId: managementAccountId,
   ssoInstanceArn,
-  ssoGroups: JSON.parse(ssoGroups) as Group[],
+  identityStoreId,
 });
 
 new AwsAccountFactoryStack(app, 'AwsAccountFactoryStack', {

@@ -1,9 +1,7 @@
-export { InlinePolicy, Statement } from "./inlinePolicy";
+export { InlinePolicy, Statement } from './inlinePolicy';
 
-export { Group } from "./ssoGroup";
+export { Assignment } from './ssoAssignment';
 
-export { Assignment } from "./ssoAssignment";
+export { ServiceControlPolicy } from './scp';
 
-export { ServiceControlPolicy } from "./scp";
-
-export { AccountPermissionSet, PermissionSet } from "./ssoPermissionSet";
+export { AccountPermissionSet, PermissionSet } from './ssoPermissionSet';
