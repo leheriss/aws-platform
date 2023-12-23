@@ -7,9 +7,6 @@
   "scripts": {
     "build:check": "tsc --noEmit",
     "test": "jest",
-    "cdk:deploy": "tsc --noEmit && cdk deploy --all --context $(./scripts/getAwsSSOGroups.ts) --context $(./scripts/getRootOUId.sh) --context $(./scripts/getAwsOrgId.sh)",
-    "cdk:synth": "tsc --noEmit && cdk synth --context $(./scripts/getAwsSSOGroups.ts) --context $(./scripts/getRootOUId.sh) --context $(./scripts/getAwsOrgId.sh)",
-    "cdk:diff": "tsc --noEmit && cdk diff --all --context $(./scripts/getAwsSSOGroups.ts) --context $(./scripts/getRootOUId.sh) --context $(./scripts/getAwsOrgId.sh)",
     "lint:ci": "eslint . --ext .ts",
     "prepare": "husky install"
   },
@@ -17,7 +14,7 @@
     "typescript": "~5.2.2",
     "@types/node": "20.7.1",
     "@types/aws-lambda": "^8.10.126",
-    "cdk": "2.110.1",
+    "cdk": "2.116.1",
     "constructs": "^10.0.0",
     "aws-cdk": "2.110.1",
     "aws-cdk-lib": "2.110.1",
@@ -47,7 +44,6 @@
     "@aws-sdk/client-account": "^3.454.0",
     "@aws-sdk/client-identitystore": "3.454.0",
     "@aws-sdk/client-organizations": "^3.454.0",
-    "@aws-sdk/client-sso-admin": "^3.454.0",
-    "dotenv": "^16.3.1"
+    "@aws-sdk/client-sso-admin": "^3.454.0"
   }
 }

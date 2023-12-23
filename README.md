@@ -23,13 +23,7 @@ The `cdk.json` file tells CDK Toolkit how to execute your app.
 ## ⚙️ Setting up the environment
 
 - Run `npm i` from the root folder
-- Set your environment variables
-  - AWS_ORGANIZATIONS_ID: Id of your AWS Organizations
-  - ROOT_OU_ID: Id of your Root Organization
-  - ADMIN_EMAILS_PARAMETER_NAME: Name of the Parameter in AWS Parameter Store that stores SRE administrators emails
-  - MGMT_ACCOUNT_ID: Id of the Management Account in AWS Organizations
-  - IDENTITY_STORE_ID: The Identity Center Id (used by the `getAwsSSOGroups` context script)
-  - SSO_INSTANCE_ARN: The Identity Center Instance id
+- Set your CDK context variables: either in the cdk.context.json, in the command line or as CDK*CONTEXT*<variable> (see [documentation about context](https://docs.aws.amazon.com/cdk/v2/guide/context.html))
 - Run `yarn prepare` to enable husky pre-commit/pre-push actions
 
 ## 🚀 Deployment using cdk

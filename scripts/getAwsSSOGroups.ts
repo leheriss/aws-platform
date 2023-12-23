@@ -5,11 +5,8 @@ import {
   IdentitystoreClient,
   paginateListGroups,
 } from '@aws-sdk/client-identitystore';
-import * as dotenv from 'dotenv';
 
 import { Group } from '../types';
-
-dotenv.config();
 
 export const listGroups = async (identityStoreId: string): Promise<Group[]> => {
   const ssoClient = new IdentitystoreClient({});
@@ -41,11 +38,7 @@ export const listGroups = async (identityStoreId: string): Promise<Group[]> => {
   );
 };
 
-if (!process.env.IDENTITY_STORE_ID) {
-  throw new Error('Missing IDENTITY_STORE_ID from environment variables');
-}
-
-listGroups(process.env.IDENTITY_STORE_ID)
+listGroups('d-936741b84d')
   .then(groups => JSON.stringify(groups))
   .then(groups => {
     // eslint-disable-next-line no-console
