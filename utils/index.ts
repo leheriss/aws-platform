@@ -5,3 +5,5 @@ export { getOrganizationUnitIdByName } from './getOuIdByName';
 export { getRootId } from './getRootId';
 export { checkRequiredEnvVariables } from './checkLambdaEnvironmentVariables';
 export { deleteAccount } from './deleteAccount';
+export { loadYamlConfig } from './loadYamlConfig';
+export { getContent } from './getContent';

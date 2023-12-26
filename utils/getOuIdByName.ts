@@ -4,13 +4,15 @@ import {
 } from '@aws-sdk/client-organizations';
 import { getRootId } from '.';
 
-// TODO: cache OU list?
 export async function getOrganizationUnitIdByName(
   client: OrganizationsClient,
   ouName: string,
 ): Promise<string | undefined> {
   try {
     const rootId = await getRootId(client);
+    if (ouName.toLowerCase() === 'root') {
+      return rootId;
+    }
     let nextToken: string | undefined;
     do {
       const listResponse = await client.send(

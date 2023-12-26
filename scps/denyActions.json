@@ -1,0 +1,45 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyCreateIAMUser",
+      "Action": ["iam:CreateUser", "iam:CreateAccessKey"],
+      "Resource": "*",
+      "Effect": "Deny",
+      "Condition": {
+        "StringNotLike": {
+          "aws:PrincipalARN": ["arn:aws:sts::*:assumed-role/AWSReservedSSO_Admin*"]
+        }
+      }
+    },
+    {
+      "Sid": "DenyDeleteOrganizationRole",
+      "Effect": "Deny",
+      "Action": [
+        "iam:DeleteRole*",
+        "iam:PutRole*",
+        "iam:UpdateRole*",
+        "iam:DetachRole*",
+        "iam:AttachRole*"
+      ],
+      "Resource": ["arn:aws:iam::*:role/OrganizationAccountAccessRole"]
+    },
+    {
+      "Sid": "DenyDeleteVpcFlowLogs",
+      "Effect": "Deny",
+      "Action": ["ec2:DeleteFlowLogs", "logs:DeleteLogGroup", "logs:DeleteLogStream"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyDeleteCloudTrail",
+      "Action": ["cloudtrail:StopLogging", "cloudtrail:DeleteTrail"],
+      "Resource": "*",
+      "Effect": "Deny",
+      "Condition": {
+        "StringNotLike": {
+          "aws:PrincipalARN": ["arn:aws:sts::*:assumed-role/AWSReservedSSO_Admin*"]
+        }
+      }
+    }
+  ]
+}

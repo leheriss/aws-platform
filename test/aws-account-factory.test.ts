@@ -4,12 +4,27 @@ import { Template } from 'aws-cdk-lib/assertions';
 import * as AwsAccountFactory from '../stacks/aws-account-factory';
 import * as Organizations from '../stacks/aws-organizations';
 
+jest.mock('../utils', () => ({
+  ...jest.requireActual('../utils'),
+  loadYamlConfig: jest.fn().mockImplementation(() => ({
+    // Mocked configuration object
+    organizationUnits: [
+      /* ... */
+    ],
+    serviceControlPolicies: [
+      /* ... */
+    ],
+    // Add other properties as needed for your test
+  })),
+}));
+
 test('has lambdas to create and delete account', async () => {
   const app = new cdk.App();
   // WHEN
   const organizationsStack = new Organizations.AwsOrganizationsStack(app, 'MyOrgStack', {
     accountId: '123456789101',
     rootOrganizationId: 'r-123',
+    configFilePath: 'config.json',
   });
   const stack = new AwsAccountFactory.AwsAccountFactoryStack(app, 'MyAccFactoryStack', {
     accountId: '123456789101',

@@ -29,6 +29,7 @@ if (!rootOuId || rootOuId == '') {
 const organizationsStack = new AwsOrganizationsStack(app, 'AwsOrganizationsStack', {
   rootOrganizationId: rootOuId,
   accountId: managementAccountId,
+  configFilePath: './config/organizations.yaml',
 });
 
 const identityCenterStack = new AwsIdentityCenterStack(app, 'AwsIdentityCenterStack', {
