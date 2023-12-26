@@ -19,12 +19,30 @@ The `cdk.json` file tells CDK Toolkit how to execute your app.
 - 🛠 AWS CLI Installed & Configured
 - 🛠 AWS CDK version 2.x Installed & Configured
 - [node](https://nodejs.org/en/) runtime with [npm](https://npmjs.com/)
+- [Create an AWS account](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-creating.html) if you never created one: this will be your management account.
+- [Enable AWS Organization](https://docs.aws.amazon.com/accounts/latest/reference/using-orgs.html) and [AWS Identity Center](https://docs.aws.amazon.com/SetUp/latest/UserGuide/setup-enableIdC.html) in your AWS management account: The AWS Organizations and SSO instance are not created by this tool. SSO instances are **regional**, so please create it in `eu-west-1`.
 
 ## ⚙️ Setting up the environment
 
 - Run `npm i` from the root folder
 - Set your CDK context variables: either in the cdk.context.json, in the command line or as CDK*CONTEXT*<variable> (see [documentation about context](https://docs.aws.amazon.com/cdk/v2/guide/context.html))
 - Run `yarn prepare` to enable husky pre-commit/pre-push actions
+
+## Context variables
+
+- adminEmailsParameterName: The AWS Parameter Store parameter containing your admin email
+
+  > Must be created before deploy the CDK app
+
+- managementAccountId: The account Id of your AWS management account
+
+- ssoInstanceArn: The instance ID of you Identity Center instance
+
+- identityStoreId: The ID of your Identity Center Identity Store
+
+- rootOuId: The ID of your Root Organization (should look like this: `r-12345`)
+
+- awsOrganizationsId: The ID of your AWS Organizations (should look like this: `o-12345678`)
 
 ## 🚀 Deployment using cdk
 
@@ -66,7 +84,7 @@ This project manages :
 - Organization Units (OU) creation/deletion
 - Service Control Policies (SCP) creation/deletion
 - Organizations management tools (Budgets, organization trails ...)
-- AWS Identity Center resources (permission sets)
+- AWS Identity Center resources (permission sets and groups)
 
 For more information on AWS Organizations concepts, please refer to [AWS documentation and best practices](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html).
 
@@ -109,15 +127,6 @@ You can find this in the [Logging stack](./stacks/logging.ts).
 
 This [construct](./lib/constructs/lambda.ts) extends the AWS CDK [NodeJS Lambda Construct](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_lambda_nodejs.NodejsFunction.html).
 
-#### **Init Account**
-
-The [initAccount](./lib/constructs/initAccount.ts) construct deploys a [ClouFormation StackSet](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/what-is-cfnstacksets.html) that create resources in the newly created account depending on the Organization Unit they are in.
-
-For now it deploys 2 roles in accounts of the Pos Pro Organization Unit:
-
-- `tf-executor`: for Terraform Cloud executions
-- `github-oidc`: for GitHub Actions workflow
-
 #### **SSO Permission Set**
 
 The [SSOPermissionSet](./lib/constructs/ssoPermissionSet.ts) extends the [CfnPermissionSet](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_sso.CfnPermissionSet.html) CDK construct. It fixes a default name and a default session duration. Of course, those two attributes can be overwritten.
@@ -137,10 +146,11 @@ For example:
 
 ```js
 {
-  group: getGroupWithName('Admin'),
+  groupId: <GroupId>,
+  groupName: <GroupName>,
   accountPermissionSets: [
     {
-      permissionSet: permissionSets.admin,
+      permissionSet: <permissionSet>,
       account: 123456789101,
     },
   ],
@@ -152,7 +162,8 @@ If I add an item to accountPermissionSets, like this:
 
 ```js
 {
-  group: getGroupWithName('Admin'),
+  groupId: <GroupId>,
+  groupName: <GroupName>,
   accountPermissionSets: [
     {
       permissionSet: permissionSets.admin,
@@ -167,6 +178,17 @@ If I add an item to accountPermissionSets, like this:
 ```
 
 This will give to the `Admin` group the `admin` permission to `123456789101` account and the `viewOnly` permission to `918203837466` account.
+
+#### SSO groups
+
+SSO groups are created in the [AwsIdentityCenter Stack](./stacks/aws-identity-center.ts) using a [custom construct](./constructs/identityCenterGroup.ts):
+
+```javascript
+const group = new IdentityCenterGroup(this, 'group', {
+  groupName: 'GroupName',
+  identityStoreId,
+});
+```
 
 ### Stacks
 
@@ -202,18 +224,15 @@ This [stack](./stacks/aws-organizations.ts) deploys AWS Organizations resources 
 - Service Control Policies
 - Organization Units
 
+Those resources are described in a [organizations.yaml](./organizations.yaml) file.
+
 #### 🪪 **aws-identity-center**
 
 This [stack](./stacks/aws-identiry-center.ts):
 
 - instantiates all permission sets
 - declares all assignment of groups to permission set/account
-
-## 📜 Scripts
-
-- [getAwsSSOGroups](./scripts/getAwsSSOGroups.ts): retrieve AWS SSO group list from AWS SSO.
-  These groups are used as context variable by CDK, for the stack to dynamically get access to all SSO groups (instead of having them hardcoded).
-- [getGroupByName](./scripts/getGroupWithName.ts): retrieve an Identity Center group id, given its name
+- create SSO groups
 
 ## Unit tests
 
@@ -221,7 +240,3 @@ This [stack](./stacks/aws-identiry-center.ts):
 
 CDK's unit tests are in [./test](./test/aws-sso.test.ts) directory.
 The unit test library used is [jest](https://jestjs.io/docs/getting-started) and its configuration is [here](./jest.config.js).
-
-# TODOS:
-
-- check husky configuration
