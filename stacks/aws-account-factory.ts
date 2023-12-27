@@ -10,9 +10,6 @@ import { BaseStack } from './baseStack';
 
 type AccountFactoryProps = {
   accountId: string;
-  ssoAdminGroupId: string;
-  ssoAdminPermissionSetArn: string;
-  ssoInstanceArn: string;
   pendingDeletionOU: CfnOrganizationalUnit;
 } & StackProps;
 
@@ -20,18 +17,13 @@ export class AwsAccountFactoryStack extends BaseStack {
   constructor(scope: Construct, id: string, props: AccountFactoryProps) {
     super(scope, id, props);
 
-    const { ssoAdminGroupId, ssoAdminPermissionSetArn, ssoInstanceArn, pendingDeletionOU } = props;
+    const { pendingDeletionOU } = props;
 
     const { stackName } = Stack.of(this);
 
     const createAccountLambda = new LambdaConstruct(this, 'CreateAccountLambda', {
       functionName: `${stackName}-create-account`,
       entry: './lambdas/createAccount.ts',
-      environment: {
-        SSO_ADMIN_GROUP_ID: ssoAdminGroupId,
-        SSO_ADMIN_PERMISSION_SET_ARN: ssoAdminPermissionSetArn,
-        SSO_INSTANCE_ARN: ssoInstanceArn,
-      },
     });
 
     createAccountLambda.addToRolePolicy(

@@ -5,13 +5,25 @@ import { policy as pendingDeletion } from '../scps/pendingDeletion';
 import { BaseStack } from './baseStack';
 import { StackProps } from 'aws-cdk-lib';
 import { getContent, loadYamlConfig } from '../utils';
-import { OrganizationalUnit } from '../types';
+import { OrganizationalUnit, OrganizationConfig } from '../types';
+import * as yup from 'yup';
 
-type OrganizationUnitsProps = {
-  accountId: string;
-  rootOrganizationId: string;
-  configFilePath: string;
-} & StackProps;
+const organizationUnitSchema = yup.object().shape({
+  name: yup.string().required(),
+  parentName: yup.string().required(),
+});
+
+const serviceControlPolicySchema = yup.object().shape({
+  name: yup.string().required(),
+  description: yup.string().required(),
+  targetOUNames: yup.array().of(yup.string()).required(),
+  contentFile: yup.string().required(),
+});
+
+const organizationConfigSchema = yup.object().shape({
+  organizationUnits: yup.array().of(organizationUnitSchema).required(),
+  serviceControlPolicies: yup.array().of(serviceControlPolicySchema).required(),
+});
 
 function buildOUTree(ous: OrganizationalUnit[]): Map<string, OrganizationalUnit[]> {
   return ous.reduce((tree, ou) => {
@@ -43,6 +55,12 @@ async function createOUsInOrder(
   }
 }
 
+type OrganizationUnitsProps = {
+  accountId: string;
+  rootOrganizationId: string;
+  configFilePath: string;
+} & StackProps;
+
 export class AwsOrganizationsStack extends BaseStack {
   public readonly sandboxOu: CfnOrganizationalUnit;
 
@@ -55,12 +73,18 @@ export class AwsOrganizationsStack extends BaseStack {
 
     const { rootOrganizationId, configFilePath } = props;
 
-    const config = loadYamlConfig(configFilePath);
-    const ouTree = buildOUTree(config.organizationUnits);
+    const organizationConfig: OrganizationConfig = loadYamlConfig<OrganizationConfig>(
+      configFilePath,
+      organizationConfigSchema,
+    );
+
+    const { organizationUnits, serviceControlPolicies } = organizationConfig;
+
+    const ouTree = buildOUTree(organizationUnits);
 
     createOUsInOrder(this, ouTree, 'root', rootOrganizationId, this.organizationUnits);
 
-    config.serviceControlPolicies.forEach(async scp => {
+    serviceControlPolicies.forEach(async scp => {
       const targetOuIds = (
         await Promise.all(
           scp.targetOUNames.map(async ouName => {

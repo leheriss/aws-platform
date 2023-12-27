@@ -224,7 +224,40 @@ This [stack](./stacks/aws-organizations.ts) deploys AWS Organizations resources 
 - Service Control Policies
 - Organization Units
 
-Those resources are described in a [organizations.yaml](./organizations.yaml) file.
+Those resources must be described in a Yaml file that you have to give to the stask like this:
+
+```javascript
+const organizationsStack = new AwsOrganizationsStack(app, 'AwsOrganizationsStack', {
+  rootOrganizationId: rootOuId,
+  accountId: managementAccountId,
+  configFilePath: './config/organizations.yaml',
+});
+```
+
+The file must contain 2 keys: `serviceControlPolicies` and `organizationUnits`:
+
+```yaml
+organizationUnits:
+  - name: App
+    parentName: root
+serviceControlPolicies:
+  - name: DenyLeaveOrganization
+    description: 'Policy forbidding leaving the Organization'
+    targetOUNames:
+      - root
+    contentFile: scps/denyLeaveOrganization.json
+  - name: DenyActions
+    description: 'Policy denying specific actions'
+    targetOUNames:
+      - root
+    contentFile: scps/denyActions.json
+```
+
+The root OU must not be defined in this file, it already exists by default. If you need to reference it as a parent OU for one of your Organization Units OR as a targetOU for your SCP, it must be called `root`.
+
+SCP content must be referenced either as a file: you must give the file path. Or directly the content if you prefer.
+
+There is one Organization Unit created by default that you cannot touch in terms of SCP: the `Pendind Deletion` OU, it is used by the delete account lambdas to store the account while it is suspended or scheduled for deletion.
 
 #### 🪪 **aws-identity-center**
 
@@ -233,6 +266,45 @@ This [stack](./stacks/aws-identiry-center.ts):
 - instantiates all permission sets
 - declares all assignment of groups to permission set/account
 - create SSO groups
+
+Those resources are described in a YAML file and the file path must be givent to the stack:
+
+```javascript
+new AwsIdentityCenterStack(app, 'AwsIdentityCenterStack', {
+  accountId: managementAccountId,
+  ssoInstanceArn,
+  identityStoreId,
+  configFilePath: './config/identityCenter.yaml',
+});
+```
+
+The file can contain this 3 keys: `group` and `permissionSets` and `assignment`. To create the assignment, the group and permissionSet referenced must be created in the group and permissionSets sections:
+
+```yaml
+groups:
+  - name: Administrators
+  - name: ReadOnly
+permissionSets:
+  - name: Administrators
+    managedPolicies:
+      - 'arn:aws:iam::aws:policy/AdministratorAccess'
+  - name: ViewOnly
+    managedPolicies:
+      - 'arn:aws:iam::aws:policy/job-function/ViewOnlyAccess'
+assignments:
+  - accountId: 'xxxxxx'
+    permissions:
+      - groupName: ReadOnly
+        permissionSets:
+          - ViewOnly
+      - groupName: Administrators
+        permissionSets:
+          - Administrators
+```
+
+To create an assignment, you must give the account ID (this is why the config file is not to be commited).
+
+The permissionSet can also contain a `description`, an `inlinePolicy` (as a file path or directly the content) and a `duration`.
 
 ## Unit tests
 

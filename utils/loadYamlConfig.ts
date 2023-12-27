@@ -1,32 +1,13 @@
 import { parse } from 'yaml';
-import { OrganizationConfig } from '../types';
 import * as fs from 'fs';
+import { AnySchema } from 'yup'; // Import the appropriate type for your schema
 
-import * as yup from 'yup';
-
-const organizationUnitSchema = yup.object().shape({
-  name: yup.string().required(),
-  parentName: yup.string().required(),
-});
-
-const serviceControlPolicySchema = yup.object().shape({
-  name: yup.string().required(),
-  description: yup.string().required(),
-  targetOUNames: yup.array().of(yup.string()).required(),
-  contentFile: yup.string().required(),
-});
-
-const organizationConfigSchema = yup.object().shape({
-  organizationUnits: yup.array().of(organizationUnitSchema).required(),
-  serviceControlPolicies: yup.array().of(serviceControlPolicySchema).required(),
-});
-
-export function loadYamlConfig(filePath: string): OrganizationConfig {
+export function loadYamlConfig<T>(filePath: string, schema: AnySchema): T {
   try {
     const fileContents = fs.readFileSync(filePath, 'utf8');
-    const data = parse(fileContents) as OrganizationConfig;
+    const data = parse(fileContents) as T;
 
-    organizationConfigSchema.validateSync(data);
+    schema.validateSync(data);
 
     return data;
   } catch (e) {

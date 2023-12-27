@@ -6,18 +6,11 @@ import {
   CreateAccountState,
   DescribeCreateAccountStatusCommand,
 } from '@aws-sdk/client-organizations';
-import { SSOAdminClient, CreateAccountAssignmentCommand } from '@aws-sdk/client-sso-admin';
 import { Handler } from 'aws-lambda';
 import { Logger } from 'tslog';
 
 import { AccountType } from './enums';
-import {
-  checkRequiredEnvVariables,
-  getOrganizationUnitIdByName,
-  getRootId,
-  moveAccount,
-  moveToGivenOuName,
-} from '../utils';
+import { getOrganizationUnitIdByName, getRootId, moveAccount, moveToGivenOuName } from '../utils';
 
 type CreateAccountEvent = {
   name: string;
@@ -96,18 +89,6 @@ const getAppAccountOuId = async (client: OrganizationsClient, ouName: string): P
 export const handler: Handler = async (event: CreateAccountEvent) => {
   log.info(JSON.stringify(event));
 
-  const requiredEnvVars = [
-    'SSO_INSTANCE_ARN',
-    'SSO_ADMIN_PERMISSION_SET_ARN',
-    'SSO_ADMIN_GROUP_ID',
-  ];
-
-  checkRequiredEnvVariables(requiredEnvVars);
-
-  const ssoInstanceArn = process.env.SSO_INSTANCE_ARN;
-  const ssoAdminPermissionSetArn = process.env.SSO_ADMIN_PERMISSION_SET_ARN;
-  const ssoAdminGroupId = process.env.SSO_ADMIN_GROUP_ID;
-
   const { email, name, accountType } = event;
 
   if (!accountType) {
@@ -152,18 +133,6 @@ export const handler: Handler = async (event: CreateAccountEvent) => {
     default:
       log.info('Account type not known, letting the account at the root organization level');
   }
-
-  const ssoAdminClient = new SSOAdminClient({});
-  await ssoAdminClient.send(
-    new CreateAccountAssignmentCommand({
-      InstanceArn: ssoInstanceArn,
-      PermissionSetArn: ssoAdminPermissionSetArn,
-      PrincipalId: ssoAdminGroupId,
-      PrincipalType: 'GROUP',
-      TargetId: accountId,
-      TargetType: 'AWS_ACCOUNT',
-    }),
-  );
 
   return {
     statusCode: 200,

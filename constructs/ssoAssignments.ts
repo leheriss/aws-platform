@@ -2,6 +2,7 @@ import { CfnAssignment } from 'aws-cdk-lib/aws-sso';
 import { Construct } from 'constructs';
 
 import { Assignment } from '../types';
+import { getAwsAccountId } from '../utils';
 
 type SSOAssignmentsProps = {
   assignments: Assignment[];
@@ -12,23 +13,28 @@ class SSOAssignments extends Construct {
   constructor(scope: Construct, id: string, props: SSOAssignmentsProps) {
     super(scope, id);
 
-    props.assignments.forEach(assignment => {
-      assignment.accountPermissionSets.forEach(accountPermissionSet => {
-        const { account } = accountPermissionSet;
-        // The account can be either a platform account (CfnAccount) or directly the account Id if the account comes from outside CDK management
-        const constructId = typeof account === 'string' ? account : account.node.id;
-        new CfnAssignment(
-          this,
-          `${accountPermissionSet.permissionSet.name}-${constructId}-${assignment.groupName}-Assignment`,
-          {
-            instanceArn: props.ssoInstanceArn,
-            permissionSetArn: accountPermissionSet.permissionSet.attrPermissionSetArn,
-            principalId: assignment.groupId,
-            principalType: 'GROUP',
-            targetId: typeof account === 'string' ? account : account.attrAccountId,
-            targetType: 'AWS_ACCOUNT',
-          },
-        );
+    const { assignments, ssoInstanceArn } = props;
+
+    assignments.forEach(assignment => {
+      const { account } = assignment;
+      // The account can be either a platform account (CfnAccount) or directly the account Id
+      // if the account comes from outside CDK management
+      const accountId = getAwsAccountId(account);
+      assignment.permissions.forEach(permission => {
+        permission.permissionSets.forEach(permissionSet => {
+          new CfnAssignment(
+            this,
+            `${permissionSet.name}-${accountId}-${permission.group.name}-Assignment`,
+            {
+              instanceArn: ssoInstanceArn,
+              permissionSetArn: permissionSet.attrPermissionSetArn,
+              principalId: permission.group.id,
+              principalType: 'GROUP',
+              targetId: accountId,
+              targetType: 'AWS_ACCOUNT',
+            },
+          );
+        });
       });
     });
   }

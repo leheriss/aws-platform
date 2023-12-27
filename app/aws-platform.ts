@@ -32,17 +32,15 @@ const organizationsStack = new AwsOrganizationsStack(app, 'AwsOrganizationsStack
   configFilePath: './config/organizations.yaml',
 });
 
-const identityCenterStack = new AwsIdentityCenterStack(app, 'AwsIdentityCenterStack', {
+new AwsIdentityCenterStack(app, 'AwsIdentityCenterStack', {
   accountId: managementAccountId,
   ssoInstanceArn,
   identityStoreId,
+  configFilePath: './config/identityCenter.yaml',
 });
 
 new AwsAccountFactoryStack(app, 'AwsAccountFactoryStack', {
   accountId: managementAccountId,
-  ssoInstanceArn,
-  ssoAdminGroupId: identityCenterStack.adminSSOGroupId,
-  ssoAdminPermissionSetArn: identityCenterStack.adminSSOPermissionSetArn,
   pendingDeletionOU: organizationsStack.pendingDeletionOu,
 });
 

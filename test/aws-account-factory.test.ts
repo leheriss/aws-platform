@@ -28,9 +28,6 @@ test('has lambdas to create and delete account', async () => {
   });
   const stack = new AwsAccountFactory.AwsAccountFactoryStack(app, 'MyAccFactoryStack', {
     accountId: '123456789101',
-    ssoAdminGroupId: '0a13eae2-f2ec-4974-9731-09d2b954b96e',
-    ssoAdminPermissionSetArn: 'permission-set-arn',
-    ssoInstanceArn: 'sso-instance-arn',
     pendingDeletionOU: organizationsStack.pendingDeletionOu,
   });
   // THEN
